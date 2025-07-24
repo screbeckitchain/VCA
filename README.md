@@ -32,4 +32,4 @@ Run the application:
 python VCA.py
 ```
 
-You will be prompted to enter the URL of the VC fund website. The results will be displayed in a scrollable terminal interface.
+You will be prompted to enter the URL of the VC fund website. When run inside a compatible terminal, the results are shown in an interactive curses interface. If curses is not available (for example in non-interactive environments), the script will fall back to simple text output.
