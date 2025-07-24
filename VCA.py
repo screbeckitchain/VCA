@@ -32,6 +32,7 @@ def _ensure_dependencies() -> None:
 
 _ensure_dependencies()
 
+import argparse
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
@@ -50,6 +51,7 @@ import io
 from contextlib import redirect_stdout
 import sys
 
+
 # === OCR helpers ===
 def extract_text_from_base64_img(data_url):
     try:
@@ -61,6 +63,7 @@ def extract_text_from_base64_img(data_url):
     except:
         pass
     return ""
+
 
 async def extract_text_from_image_url(img_url, base_url):
     try:
@@ -75,6 +78,7 @@ async def extract_text_from_image_url(img_url, base_url):
         pass
     return ""
 
+
 def extract_text_from_svg(svg_tag):
     """Extract text from <text> elements in an SVG tag."""
     try:
@@ -85,11 +89,30 @@ def extract_text_from_svg(svg_tag):
     except Exception:
         return ""
 
+
 # === Heuristic to detect valid company names ===
 def is_probable_company_name(name):
     name = name.strip(" $•-–—·\xb7|→●\t\n\r")
     name = re.sub(r"(?i)\\blogo+\\b", "", name).strip()
-    banned = ["home", "team", "contact", "blog", "services", "portfolio", "email", "english", "arabic", "en", "ar", "career", "subscribe", "loading", "apply", "login", "follow"]
+    banned = [
+        "home",
+        "team",
+        "contact",
+        "blog",
+        "services",
+        "portfolio",
+        "email",
+        "english",
+        "arabic",
+        "en",
+        "ar",
+        "career",
+        "subscribe",
+        "loading",
+        "apply",
+        "login",
+        "follow",
+    ]
     if name.lower() in banned:
         return False
     if len(name) > 60 or len(name) < 2:
@@ -102,6 +125,7 @@ def is_probable_company_name(name):
         return False
     return True
 
+
 # === Page rendering ===
 async def fetch_page_content(url):
     async with async_playwright() as p:
@@ -113,16 +137,18 @@ async def fetch_page_content(url):
         await browser.close()
         return content
 
+
 async def find_portfolio_section(base_url):
     html = await fetch_page_content(base_url)
     soup = BeautifulSoup(html, "html.parser")
     keywords = ["portfolio", "investments", "companies"]
     candidates = []
     for a in soup.find_all("a", href=True):
-        if any(k in a.text.lower() or k in a['href'].lower() for k in keywords):
-            full_url = urljoin(base_url, a['href'])
+        if any(k in a.text.lower() or k in a["href"].lower() for k in keywords):
+            full_url = urljoin(base_url, a["href"])
             candidates.append(full_url)
     return candidates or [base_url]
+
 
 async def parse_portfolio(url):
     html = await fetch_page_content(url)
@@ -162,9 +188,9 @@ async def parse_portfolio(url):
 
     for div in soup.find_all("div"):
         style = div.get("style", "")
-        match = re.search(r'background-image:\s*url\((.*?)\)', style)
+        match = re.search(r"background-image:\s*url\((.*?)\)", style)
         if match:
-            bg_url = match.group(1).strip('"\'')
+            bg_url = match.group(1).strip("\"'")
             text = await extract_text_from_image_url(bg_url, url)
             for line in text.split("\n"):
                 line = line.strip()
@@ -186,6 +212,7 @@ async def parse_portfolio(url):
     print(f"[DEBUG] Найдено компаний: {len(companies)}")
     return sorted(companies)
 
+
 # === Crunchbase via Google Search ===
 async def fetch_crunchbase_html(company_name):
     try:
@@ -203,6 +230,7 @@ async def fetch_crunchbase_html(company_name):
     except Exception as e:
         print(f"[ERROR] Crunchbase fetch failed for {company_name}: {e}")
     return ""
+
 
 # === Main Agent Logic ===
 async def analyze_vc_fund(site_url):
@@ -247,7 +275,7 @@ async def analyze_vc_fund(site_url):
         for line in html.splitlines():
             if "$" in line or "usd" in line:
                 try:
-                    num = ''.join(filter(str.isdigit, line))
+                    num = "".join(filter(str.isdigit, line))
                     if num:
                         amt = int(num)
                         if 10_000 < amt < 100_000_000:
@@ -263,10 +291,13 @@ async def analyze_vc_fund(site_url):
     print("\nИнвестиции в FoodTech/F&B:", sectors["FoodTech/F&B"])
     top_countries = sorted(set(countries), key=countries.count, reverse=True)[:3]
     print("\nТоп-3 страны:", top_countries)
-    mena_countries = list(set([c for c in countries if c in ["UAE", "KSA", "EGYPT", "JORDAN", "QATAR", "KUWAIT"]]))
+    mena_countries = list(
+        set([c for c in countries if c in ["UAE", "KSA", "EGYPT", "JORDAN", "QATAR", "KUWAIT"]])
+    )
     print("MENA страны:", mena_countries)
     if amounts:
-        print("\nСредний инвестиционный чек:", round(sum(amounts)/len(amounts), 2))
+        print("\nСредний инвестиционный чек:", round(sum(amounts) / len(amounts), 2))
+
 
 async def _capture_analysis(url: str) -> str:
     """Run analysis and capture printed output."""
@@ -274,6 +305,7 @@ async def _capture_analysis(url: str) -> str:
     with redirect_stdout(buffer):
         await analyze_vc_fund(url)
     return buffer.getvalue()
+
 
 def display_input_screen(stdscr) -> str:
     """Ask user for a URL and return it."""
@@ -286,6 +318,7 @@ def display_input_screen(stdscr) -> str:
     curses.noecho()
     curses.curs_set(0)
     return url
+
 
 def display_results_screen(stdscr, results_text: str) -> None:
     """Show analysis output in a scrollable window."""
@@ -313,19 +346,35 @@ def display_results_screen(stdscr, results_text: str) -> None:
         elif key in (ord("q"), ord("Q")):
             break
 
+
 def _curses_main(stdscr) -> None:
     url = display_input_screen(stdscr)
     results = asyncio.run(_capture_analysis(url))
     display_results_screen(stdscr, results)
 
+
 # === Entry Point ===
-if __name__ == "__main__":
+def main() -> None:
+    parser = argparse.ArgumentParser(description="VC Portfolio Analyzer")
+    parser.add_argument("--url", help="VC fund website URL")
+    args = parser.parse_args()
+
+    if args.url:
+        results = asyncio.run(_capture_analysis(args.url))
+        print(results)
+        return
+
     try:
         if sys.stdin.isatty() and sys.stdout.isatty():
             curses.wrapper(_curses_main)
         else:
             raise curses.error("Not a TTY")
     except curses.error:
-        url = input("Введите URL сайта фонда: ").strip()
-        results = asyncio.run(_capture_analysis(url))
-        print(results)
+        print(
+            "Нет интерактивного терминала и не указан --url. "
+            "Запустите с параметром --url или используйте 'streamlit run streamlit_app.py'."
+        )
+
+
+if __name__ == "__main__":
+    main()
