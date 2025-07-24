@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 import traceback
+import threading
 
 try:
     import streamlit as st
@@ -32,6 +33,23 @@ except Exception as e:
     st.stop()
 
 
+def _run_async(coro):
+    """Execute an async coroutine even if a loop is running."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    result = {}
+
+    def _thread_runner():
+        result["value"] = asyncio.run(coro)
+
+    t = threading.Thread(target=_thread_runner)
+    t.start()
+    t.join()
+    return result.get("value")
+
+
 def main() -> None:
     """Streamlit application entry point."""
     missing = _ensure_dependencies()
@@ -50,7 +68,7 @@ def main() -> None:
         else:
             with st.spinner("Анализируем сайт..."):
                 try:
-                    results = asyncio.run(_capture_analysis(url))
+                    results = _run_async(_capture_analysis(url))
                     st.text(results)
                 except Exception as e:
                     st.error(f"Error during analysis: {e}")
