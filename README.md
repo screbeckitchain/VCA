@@ -52,7 +52,8 @@ streamlit run streamlit_app.py
 Do **not** run `python streamlit_app.py` directly or you may see a blank or black
 screen. Always start Streamlit using the command above. The application now
 handles environments with a running event loop (e.g. Jupyter) without showing a
-blank page.
+blank page. Errors that occur in async tasks are reported in the terminal
+instead of causing a silent blank page.
 
 Enter the fund's website URL into the text box and click **Запустить анализ** to
 view the results. If required packages are missing, the Streamlit page will
