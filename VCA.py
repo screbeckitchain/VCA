@@ -27,6 +27,7 @@ import curses
 from curses import textpad
 import io
 from contextlib import redirect_stdout
+import sys
 
 # === OCR helpers ===
 def extract_text_from_base64_img(data_url):
@@ -299,4 +300,12 @@ def _curses_main(stdscr) -> None:
 
 # === Entry Point ===
 if __name__ == "__main__":
-    curses.wrapper(_curses_main)
+    try:
+        if sys.stdin.isatty() and sys.stdout.isatty():
+            curses.wrapper(_curses_main)
+        else:
+            raise curses.error("Not a TTY")
+    except curses.error:
+        url = input("Введите URL сайта фонда: ").strip()
+        results = asyncio.run(_capture_analysis(url))
+        print(results)
