@@ -8,6 +8,7 @@ Install the required Python packages:
 
 ```bash
 pip install -r requirements.txt
+playwright install  # downloads the browser engines
 ```
 
 ## Dependencies
@@ -71,3 +72,5 @@ streamlit run streamlit_app.py
 If you still see a blank screen immediately after running the script, check that
 all packages from `requirements.txt` are installed. Missing dependencies will
 cause the interface to fail before showing any prompts.
+After installing the packages, run `playwright install` once to download the
+required browser binaries. Without this step Playwright may fail to launch.
