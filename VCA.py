@@ -54,7 +54,7 @@ async def extract_text_from_image_url(img_url, base_url):
     return ""
 
 def extract_text_from_svg(svg_tag):
-        if cairosvg is None:
+    if cairosvg is None:
         return ""
     try:
         svg_bytes = str(svg_tag).encode("utf-8")
