@@ -358,7 +358,7 @@ def _curses_main(stdscr) -> None:
 
 # === Entry Point ===
 def main() -> None:
-        missing = _ensure_dependencies()
+    missing = _ensure_dependencies()
     if missing:
         print(
             "Missing required packages: {}. "
