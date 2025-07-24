@@ -4,11 +4,18 @@ This project analyzes a VC fund website to extract portfolio companies and perfo
 
 ## Installation
 
-Install the required Python packages. Additionally, `cairosvg` depends on the
-Cairo system library. On Debian/Ubuntu systems you can install it with:
+Install the required Python packages. **cairosvg** relies on the Cairo system
+library, so you must install it before installing the Python requirements.
+On Debian/Ubuntu systems you can run:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y libcairo2
+```
+
+For macOS the equivalent command is:
+
+```bash
+brew install cairo
 ```
 
 Then install the Python packages:
