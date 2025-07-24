@@ -50,7 +50,9 @@ A simple Streamlit frontend is available for running the analysis in the browser
 streamlit run streamlit_app.py
 ```
 Do **not** run `python streamlit_app.py` directly or you may see a blank or black
-screen. Always start Streamlit using the command above.
+screen. Always start Streamlit using the command above. The application now
+handles environments with a running event loop (e.g. Jupyter) without showing a
+blank page.
 
 Enter the fund's website URL into the text box and click **Запустить анализ** to
 view the results. If required packages are missing, the Streamlit page will
