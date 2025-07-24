@@ -59,18 +59,26 @@ import sys
 
 # Helper to run async coroutines in environments with a running event loop
 def _run_async(coro):
+    """Execute ``coro`` even if an event loop is already running."""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         return asyncio.run(coro)
-    result = {}
 
-    def _thread_runner():
-        result["value"] = asyncio.run(coro)
+    result: dict[str, object] = {}
+    error: dict[str, BaseException] = {}
 
+    def _thread_runner() -> None:
+        try:
+            result["value"] = asyncio.run(coro)
+        except BaseException as e:
+            error["err"] = e
+            
     t = threading.Thread(target=_thread_runner)
     t.start()
     t.join()
+    if "err" in error:
+        raise error["err"]
     return result.get("value")
 
 
