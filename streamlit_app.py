@@ -12,6 +12,13 @@ except ImportError:
     )
     raise SystemExit(1)
 
+# Warn if the script is executed directly instead of via ``streamlit run``.
+if not os.environ.get("STREAMLIT_SERVER_HEADLESS") and not getattr(
+    st, "_is_running_with_streamlit", False
+):
+    print("This application should be launched with 'streamlit run streamlit_app.py'.")
+    raise SystemExit(0)
+
 # Add current directory to path to ensure imports work
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
