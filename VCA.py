@@ -5,8 +5,8 @@
 import importlib
 
 
-def _ensure_dependencies() -> None:
-    """Verify that all required packages are installed."""
+def _ensure_dependencies() -> list[str]:
+    """Return a list of missing packages from ``requirements.txt``."""
     required = [
         "aiohttp",
         "bs4",
@@ -22,36 +22,34 @@ def _ensure_dependencies() -> None:
             importlib.import_module(pkg)
         except ImportError:
             missing.append(pkg)
-    if missing:
-        raise ImportError(
-            (
-                "Missing required packages: {}. "
-                "Install them with `pip install -r requirements.txt`. "
-                "If you only see a blank screen, it's usually because these"
-                " packages are not available."
-            ).format(
-                ", ".join(missing)
-            )
-        )
+    return missing
 
 
-_ensure_dependencies()
+
 
 import argparse
 import asyncio
-import aiohttp
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-from playwright.async_api import async_playwright
-from PIL import Image
-import pytesseract
-from tqdm import tqdm
+try:
+    import aiohttp
+    from bs4 import BeautifulSoup
+    from urllib.parse import urljoin
+    from playwright.async_api import async_playwright
+    from PIL import Image
+    import pytesseract
+    from tqdm import tqdm
+    from googlesearch import search
+except ImportError:
+    aiohttp = None
+    BeautifulSoup = None
+    async_playwright = None
+    Image = None
+    pytesseract = None
+    tqdm = None
+    search = None
 import re
 from io import BytesIO
 from base64 import b64decode
-from googlesearch import search
 import curses
-from curses import textpad
 import io
 from contextlib import redirect_stdout
 import sys
@@ -360,6 +358,16 @@ def _curses_main(stdscr) -> None:
 
 # === Entry Point ===
 def main() -> None:
+        missing = _ensure_dependencies()
+    if missing:
+        print(
+            "Missing required packages: {}. "
+            "Install them with `pip install -r requirements.txt`. "
+            "If you only see a blank screen, it's usually because these packages are not available.".format(
+                ", ".join(missing)
+            )
+        )
+        return
     parser = argparse.ArgumentParser(description="VC Portfolio Analyzer")
     parser.add_argument("--url", help="VC fund website URL")
     args = parser.parse_args()
