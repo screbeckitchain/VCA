@@ -16,20 +16,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from VCA import _capture_analysis, _ensure_dependencies
-    
-    # Check for missing dependencies
-    missing = _ensure_dependencies()
-    if missing:
-        st.error(f"Missing required packages: {', '.join(missing)}")
-        st.info("Please install missing packages using: pip install -r requirements.txt")
-        st.stop()
-        
-except ImportError as e:
-    st.error(f"Import error: {str(e)}")
-    st.info("Make sure all required packages are installed from requirements.txt")
-    st.stop()
 except Exception as e:
-    st.error(f"Unexpected error: {str(e)}")
+    st.error(f"Failed to import application modules: {e}")
+    st.info(
+        "Check that all files are present and dependencies from requirements.txt are installed."
+    )
+    st.stop()
+
+# Check for missing dependencies before running anything heavy
+missing = _ensure_dependencies()
+if missing:
+    st.error(f"Missing required packages: {', '.join(missing)}")
+    st.info("Please install missing packages using: pip install -r requirements.txt")
     st.stop()
 
 st.title("VC Portfolio Analyzer")
