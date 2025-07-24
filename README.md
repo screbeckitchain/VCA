@@ -49,9 +49,12 @@ A simple Streamlit frontend is available for running the analysis in the browser
 ```bash
 streamlit run streamlit_app.py
 ```
+Do **not** run `python streamlit_app.py` directly or you may see a blank or black
+screen. Always start Streamlit using the command above.
 
-Enter the fund's website URL into the text box and click **Запустить анализ** to view the results. If required packages
-are missing, the Streamlit page will display an error explaining which dependencies need to be installed.
+Enter the fund's website URL into the text box and click **Запустить анализ** to
+view the results. If required packages are missing, the Streamlit page will
+display an error explaining which dependencies need to be installed.
 If the `streamlit` command itself is unavailable and you cannot install new packages,
 run the command-line version instead:
 
