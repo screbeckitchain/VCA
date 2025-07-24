@@ -1,9 +1,7 @@
 # VC Portfolio Analyzer Agent (with Google-powered Crunchbase scraping + delay handling)
 
-import os
-import time
 import asyncio
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from playwright.async_api import async_playwright
@@ -28,14 +26,16 @@ def extract_text_from_base64_img(data_url):
         pass
     return ""
 
-def extract_text_from_image_url(img_url, base_url):
+async def extract_text_from_image_url(img_url, base_url):
     try:
         full_url = urljoin(base_url, img_url)
-        r = requests.get(full_url, timeout=10)
-        if r.status_code == 200:
-            img = Image.open(BytesIO(r.content))
-            return pytesseract.image_to_string(img)
-    except:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(full_url, timeout=10) as r:
+                if r.status == 200:
+                    content = await r.read()
+                    img = Image.open(BytesIO(content))
+                    return pytesseract.image_to_string(img)
+    except Exception:
         pass
     return ""
 
@@ -117,7 +117,7 @@ async def parse_portfolio(url):
         if src.startswith("data:image"):
             text = extract_text_from_base64_img(src)
         elif src.startswith("/") or src.startswith("http"):
-            text = extract_text_from_image_url(src, url)
+            text = await extract_text_from_image_url(src, url)
         for line in text.split("\n"):
             line = line.strip()
             if is_probable_company_name(line):
@@ -128,7 +128,7 @@ async def parse_portfolio(url):
         match = re.search(r'background-image:\s*url\((.*?)\)', style)
         if match:
             bg_url = match.group(1).strip('"\'')
-            text = extract_text_from_image_url(bg_url, url)
+            text = await extract_text_from_image_url(bg_url, url)
             for line in text.split("\n"):
                 line = line.strip()
                 if is_probable_company_name(line):
@@ -150,17 +150,19 @@ async def parse_portfolio(url):
     return sorted(companies)
 
 # === Crunchbase via Google Search ===
-def fetch_crunchbase_html(company_name):
+async def fetch_crunchbase_html(company_name):
     try:
         query = f'site:crunchbase.com "{company_name}"'
-        for url in search(query, num_results=3):
+        for url in search(query, num=3):
             if "crunchbase.com/organization/" in url:
                 headers = {"User-Agent": "Mozilla/5.0"}
-                r = requests.get(url, headers=headers, timeout=10)
-                if r.status_code == 200:
-                    soup = BeautifulSoup(r.text, "html.parser")
-                    return soup.get_text()
-        time.sleep(3)  # задержка между поисками
+                async with aiohttp.ClientSession(headers=headers) as session:
+                    async with session.get(url, timeout=10) as r:
+                        if r.status == 200:
+                            text = await r.text()
+                            soup = BeautifulSoup(text, "html.parser")
+                            return soup.get_text()
+        await asyncio.sleep(3)  # задержка между поисками
     except Exception as e:
         print(f"[ERROR] Crunchbase fetch failed for {company_name}: {e}")
     return ""
@@ -187,7 +189,7 @@ async def analyze_vc_fund(site_url):
 
     print("\n🔍 Анализ компаний на Crunchbase...")
     for name in tqdm(companies, desc="Обработка компаний"):
-        html = fetch_crunchbase_html(name)
+        html = await fetch_crunchbase_html(name)
         text = html.lower()
 
         for year in investment_years:
@@ -215,7 +217,7 @@ async def analyze_vc_fund(site_url):
                             amounts.append(amt)
                 except:
                     pass
-        time.sleep(3)  # задержка между итерациями компаний
+        await asyncio.sleep(3)  # задержка между итерациями компаний
 
     print("\n========= АНАЛИТИКА PO CRUNCHBASE =========")
     print("Инвестиции по годам:", investment_years)
