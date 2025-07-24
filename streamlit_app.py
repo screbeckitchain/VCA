@@ -1,6 +1,7 @@
 import asyncio
 import sys
 import os
+import traceback
 
 try:
     import streamlit as st
@@ -45,7 +46,8 @@ def main() -> None:
                     results = asyncio.run(_capture_analysis(url))
                     st.text(results)
                 except Exception as e:
-                    st.error(f"Error during analysis: {str(e)}")
+                    st.error(f"Error during analysis: {e}")
+                    st.exception(traceback.format_exc())
                     st.info("Please check the URL and try again.")
 
 
