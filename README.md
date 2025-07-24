@@ -50,3 +50,19 @@ streamlit run streamlit_app.py
 ```
 
 Enter the fund's website URL into the text box and click **Запустить анализ** to view the results.
+
+## Troubleshooting
+
+If you run `python VCA.py` in an environment that doesn't support interactive
+terminals, the program may appear as a blank screen. In that case, specify the
+URL directly using `--url` or launch the Streamlit interface:
+
+```bash
+python VCA.py --url https://example.com
+```
+
+or
+
+```bash
+streamlit run streamlit_app.py
+```
