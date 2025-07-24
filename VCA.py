@@ -13,6 +13,10 @@ import cairosvg
 from io import BytesIO
 from base64 import b64decode
 from googlesearch import search
+import curses
+from curses import textpad
+import io
+from contextlib import redirect_stdout
 
 # === OCR helpers ===
 def extract_text_from_base64_img(data_url):
@@ -231,7 +235,56 @@ async def analyze_vc_fund(site_url):
     if amounts:
         print("\nСредний инвестиционный чек:", round(sum(amounts)/len(amounts), 2))
 
+async def _capture_analysis(url: str) -> str:
+    """Run analysis and capture printed output."""
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        await analyze_vc_fund(url)
+    return buffer.getvalue()
+
+def display_input_screen(stdscr) -> str:
+    """Ask user for a URL and return it."""
+    curses.curs_set(1)
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Введите URL сайта фонда:")
+    stdscr.refresh()
+    curses.echo()
+    url = stdscr.getstr(2, 0, 200).decode().strip()
+    curses.noecho()
+    curses.curs_set(0)
+    return url
+
+def display_results_screen(stdscr, results_text: str) -> None:
+    """Show analysis output in a scrollable window."""
+    stdscr.clear()
+    height, width = stdscr.getmaxyx()
+    lines = results_text.splitlines()
+    pad_height = max(len(lines) + 1, height)
+    pad = curses.newpad(pad_height, width)
+    for i, line in enumerate(lines):
+        try:
+            pad.addstr(i, 0, line[: width - 1])
+        except curses.error:
+            pass
+    position = 0
+    instruction = "Use UP/DOWN to scroll, q to quit"
+    while True:
+        pad.refresh(position, 0, 0, 0, height - 2, width - 1)
+        stdscr.addstr(height - 1, 0, instruction[: width - 1])
+        stdscr.clrtoeol()
+        key = stdscr.getch()
+        if key == curses.KEY_DOWN and position < pad_height - height:
+            position += 1
+        elif key == curses.KEY_UP and position > 0:
+            position -= 1
+        elif key in (ord("q"), ord("Q")):
+            break
+
+def _curses_main(stdscr) -> None:
+    url = display_input_screen(stdscr)
+    results = asyncio.run(_capture_analysis(url))
+    display_results_screen(stdscr, results)
+
 # === Entry Point ===
 if __name__ == "__main__":
-    url = input("Введите URL сайта фонда: ")
-    asyncio.run(analyze_vc_fund(url))
+    curses.wrapper(_curses_main)
