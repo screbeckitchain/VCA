@@ -24,7 +24,12 @@ def _ensure_dependencies() -> None:
             missing.append(pkg)
     if missing:
         raise ImportError(
-            "Missing required packages: {}. Install them with `pip install -r requirements.txt`.".format(
+            (
+                "Missing required packages: {}. "
+                "Install them with `pip install -r requirements.txt`. "
+                "If you only see a blank screen, it's usually because these"
+                " packages are not available."
+            ).format(
                 ", ".join(missing)
             )
         )
