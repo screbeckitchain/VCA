@@ -23,25 +23,31 @@ except Exception as e:
     )
     st.stop()
 
-# Check for missing dependencies before running anything heavy
-missing = _ensure_dependencies()
-if missing:
-    st.error(f"Missing required packages: {', '.join(missing)}")
-    st.info("Please install missing packages using: pip install -r requirements.txt")
-    st.stop()
 
-st.title("VC Portfolio Analyzer")
+def main() -> None:
+    """Streamlit application entry point."""
+    missing = _ensure_dependencies()
+    if missing:
+        st.error(f"Missing required packages: {', '.join(missing)}")
+        st.info("Please install missing packages using: pip install -r requirements.txt")
+        st.stop()
 
-url = st.text_input("Введите URL сайта фонда:", placeholder="https://example.com")
+    st.title("VC Portfolio Analyzer")
 
-if st.button("Запустить анализ") and url:
-    if not url.startswith(('http://', 'https://')):
-        st.warning("Please enter a valid URL starting with http:// or https://")
-    else:
-        with st.spinner("Анализируем сайт..."):
-            try:
-                results = asyncio.run(_capture_analysis(url))
-                st.text(results)
-            except Exception as e:
-                st.error(f"Error during analysis: {str(e)}")
-                st.info("Please check the URL and try again.")
+    url = st.text_input("Введите URL сайта фонда:", placeholder="https://example.com")
+
+    if st.button("Запустить анализ") and url:
+        if not url.startswith(("http://", "https://")):
+            st.warning("Please enter a valid URL starting with http:// or https://")
+        else:
+            with st.spinner("Анализируем сайт..."):
+                try:
+                    results = asyncio.run(_capture_analysis(url))
+                    st.text(results)
+                except Exception as e:
+                    st.error(f"Error during analysis: {str(e)}")
+                    st.info("Please check the URL and try again.")
+
+
+if __name__ == "__main__":
+    main()
