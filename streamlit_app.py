@@ -14,9 +14,7 @@ except ImportError:
     raise SystemExit(1)
 
 # Warn if the script is executed directly instead of via ``streamlit run``.
-if not os.environ.get("STREAMLIT_SERVER_HEADLESS") and not getattr(
-    st, "_is_running_with_streamlit", False
-):
+if not st.runtime.scriptrunner.is_running_with_streamlit():
     print("This application should be launched with 'streamlit run streamlit_app.py'.")
     raise SystemExit(0)
 
@@ -34,19 +32,26 @@ except Exception as e:
 
 
 def _run_async(coro):
-    """Execute an async coroutine even if a loop is running."""
+    """Execute an async coroutine even if a loop is already running."""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         return asyncio.run(coro)
-    result = {}
 
-    def _thread_runner():
-        result["value"] = asyncio.run(coro)
+    result: dict[str, object] = {}
+    error: dict[str, BaseException] = {}
+
+    def _thread_runner() -> None:
+        try:
+            result["value"] = asyncio.run(coro)
+        except BaseException as e:
+            error["err"] = e
 
     t = threading.Thread(target=_thread_runner)
     t.start()
     t.join()
+    if "err" in error:
+        raise error["err"]
     return result.get("value")
 
 
