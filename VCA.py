@@ -1,5 +1,37 @@
 # VC Portfolio Analyzer Agent (with Google-powered Crunchbase scraping + delay handling)
 
+"""Analyze a VC fund website and perform simple Crunchbase analysis."""
+
+import importlib
+
+
+def _ensure_dependencies() -> None:
+    """Verify that all required packages are installed."""
+    required = [
+        "aiohttp",
+        "bs4",
+        "playwright.async_api",
+        "PIL",
+        "pytesseract",
+        "tqdm",
+        "googlesearch",
+    ]
+    missing = []
+    for pkg in required:
+        try:
+            importlib.import_module(pkg)
+        except ImportError:
+            missing.append(pkg)
+    if missing:
+        raise ImportError(
+            "Missing required packages: {}. Install them with `pip install -r requirements.txt`.".format(
+                ", ".join(missing)
+            )
+        )
+
+
+_ensure_dependencies()
+
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
