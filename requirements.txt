@@ -1,0 +1,8 @@
+aiohttp
+beautifulsoup4
+playwright
+Pillow
+pytesseract
+tqdm
+cairosvg
+googlesearch-python
