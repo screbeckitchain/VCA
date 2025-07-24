@@ -370,10 +370,18 @@ def main() -> None:
         else:
             raise curses.error("Not a TTY")
     except curses.error:
-        print(
-            "Нет интерактивного терминала и не указан --url. "
-            "Запустите с параметром --url или используйте 'streamlit run streamlit_app.py'."
-        )
+        try:
+            url = input("Введите URL сайта фонда: ").strip()
+            if url:
+                results = asyncio.run(_capture_analysis(url))
+                print(results)
+            else:
+                raise EOFError
+        except (EOFError, KeyboardInterrupt):
+            print(
+                "Нет интерактивного терминала и не указан --url. "
+                "Запустите с параметром --url или используйте 'streamlit run streamlit_app.py'."
+            )
 
 
 if __name__ == "__main__":
