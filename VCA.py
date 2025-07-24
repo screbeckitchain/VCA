@@ -41,17 +41,6 @@ from PIL import Image
 import pytesseract
 from tqdm import tqdm
 import re
-try:
-    import cairosvg
-except Exception as e:  # pragma: no cover - environment specific
-    cairosvg = None
-    print(
-        "[WARNING] Failed to import cairosvg: {}".format(e)
-    )
-    print(
-        "Install the Cairo system library (e.g. `sudo apt-get install -y libcairo2`) "
-        "and the cairosvg Python package to enable SVG OCR."
-    )
 from io import BytesIO
 from base64 import b64decode
 from googlesearch import search
@@ -87,13 +76,12 @@ async def extract_text_from_image_url(img_url, base_url):
     return ""
 
 def extract_text_from_svg(svg_tag):
-    if cairosvg is None:
-        return ""
+    """Extract text from <text> elements in an SVG tag."""
     try:
-        svg_bytes = str(svg_tag).encode("utf-8")
-        png_data = cairosvg.svg2png(bytestring=svg_bytes)
-        img = Image.open(BytesIO(png_data))
-        return pytesseract.image_to_string(img)
+        soup = BeautifulSoup(str(svg_tag), "html.parser")
+        text_elements = soup.find_all(["text", "tspan"])
+        texts = [t.get_text(" ", strip=True) for t in text_elements]
+        return " ".join(texts)
     except Exception:
         return ""
 
