@@ -49,7 +49,8 @@ A simple Streamlit frontend is available for running the analysis in the browser
 streamlit run streamlit_app.py
 ```
 
-Enter the fund's website URL into the text box and click **Запустить анализ** to view the results.
+Enter the fund's website URL into the text box and click **Запустить анализ** to view the results. If required packages
+are missing, the Streamlit page will display an error explaining which dependencies need to be installed.
 
 ## Troubleshooting
 
@@ -66,3 +67,7 @@ or
 ```bash
 streamlit run streamlit_app.py
 ```
+
+If you still see a blank screen immediately after running the script, check that
+all packages from `requirements.txt` are installed. Missing dependencies will
+cause the interface to fail before showing any prompts.
