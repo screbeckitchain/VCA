@@ -29,6 +29,7 @@ def _ensure_dependencies() -> list[str]:
 
 import argparse
 import asyncio
+import os
 try:
     import aiohttp
     from bs4 import BeautifulSoup
@@ -398,4 +399,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Detect if the script is executed via ``streamlit run``. The environment
+    # variable ``STREAMLIT_SERVER_HEADLESS`` is set by Streamlit when running
+    # in server mode.
+    if os.environ.get("STREAMLIT_SERVER_HEADLESS"):
+        from streamlit_app import main as streamlit_main
+
+        streamlit_main()
+    else:
+        main()
