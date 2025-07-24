@@ -30,6 +30,7 @@ def _ensure_dependencies() -> list[str]:
 import argparse
 import asyncio
 import os
+import threading
 try:
     import aiohttp
     from bs4 import BeautifulSoup
@@ -54,6 +55,23 @@ import curses
 import io
 from contextlib import redirect_stdout
 import sys
+
+
+# Helper to run async coroutines in environments with a running event loop
+def _run_async(coro):
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    result = {}
+
+    def _thread_runner():
+        result["value"] = asyncio.run(coro)
+
+    t = threading.Thread(target=_thread_runner)
+    t.start()
+    t.join()
+    return result.get("value")
 
 
 # === OCR helpers ===
@@ -353,7 +371,7 @@ def display_results_screen(stdscr, results_text: str) -> None:
 
 def _curses_main(stdscr) -> None:
     url = display_input_screen(stdscr)
-    results = asyncio.run(_capture_analysis(url))
+    results = _run_async(_capture_analysis(url))
     display_results_screen(stdscr, results)
 
 
@@ -374,7 +392,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.url:
-        results = asyncio.run(_capture_analysis(args.url))
+        results = _run_async(_capture_analysis(args.url))
         print(results)
         return
 
@@ -387,7 +405,7 @@ def main() -> None:
         try:
             url = input("Введите URL сайта фонда: ").strip()
             if url:
-                results = asyncio.run(_capture_analysis(url))
+                results = _run_async(_capture_analysis(url))
                 print(results)
             else:
                 raise EOFError
