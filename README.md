@@ -24,6 +24,19 @@ Then install the Python packages:
 pip install -r requirements.txt
 ```
 
+## Dependencies
+
+The project depends on the following Python packages:
+
+- aiohttp
+- beautifulsoup4
+- playwright
+- Pillow
+- pytesseract
+- tqdm
+- cairosvg (optional, requires the system Cairo library)
+- googlesearch-python
+
 ## Usage
 
 Run the application:
