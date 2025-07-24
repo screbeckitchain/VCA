@@ -52,7 +52,12 @@ streamlit run streamlit_app.py
 
 Enter the fund's website URL into the text box and click **Запустить анализ** to view the results. If required packages
 are missing, the Streamlit page will display an error explaining which dependencies need to be installed.
+If the `streamlit` command itself is unavailable and you cannot install new packages,
+run the command-line version instead:
 
+```bash
+python VCA.py
+```
 ## Troubleshooting
 
 If you run `python VCA.py` in an environment that doesn't support interactive
