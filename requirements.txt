@@ -4,5 +4,4 @@ playwright
 Pillow
 pytesseract
 tqdm
-cairosvg
 googlesearch-python
