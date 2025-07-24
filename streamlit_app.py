@@ -1,7 +1,12 @@
 import asyncio
 import streamlit as st
 
-from VCA import _capture_analysis
+try:
+    from VCA import _capture_analysis
+except ImportError as e:
+    import streamlit as st
+    st.error(str(e))
+    st.stop()
 
 st.title("VC Portfolio Analyzer")
 
