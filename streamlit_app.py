@@ -52,4 +52,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:  # pragma: no cover - catch all for Streamlit
+        st.error(f"Unhandled error: {e}")
+        st.exception(traceback.format_exc())
