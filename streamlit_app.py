@@ -1,7 +1,15 @@
 import asyncio
-import streamlit as st
 import sys
 import os
+
+try:
+    import streamlit as st
+except ImportError:
+    print(
+        "Streamlit is not installed. Install all dependencies with\n"
+        "`pip install -r requirements.txt` or run VCA.py for the CLI interface."
+    )
+    raise SystemExit(1)
 
 # Add current directory to path to ensure imports work
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
